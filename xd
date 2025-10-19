@@ -1,4 +1,5 @@
--- Auto Server Hop para Xeno con Re-Execute Infinito MEJORADO
+-- Auto Server Hop + MM2 AutoFarmer con Re-Execute Infinito
+-- Versión para GitHub
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -10,6 +11,9 @@ local CHECK_INTERVAL = 15
 
 local LocalPlayer = Players.LocalPlayer
 local PlaceId = game.PlaceId
+
+-- URL del script en GitHub (CAMBIA ESTO POR TU URL)
+local SCRIPT_URL = "https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/ServerHop.lua"
 
 -- Prevenir ejecución múltiple
 if getgenv().ServerHopRunning then
@@ -24,11 +28,8 @@ getgenv().ServerHopRunning = true
 local function serverHop()
     print("[Server Hop] Cambiando de servidor...")
     
-    -- Re-ejecutar el script en el nuevo servidor
-    if syn and syn.queue_on_teleport then
-        syn.queue_on_teleport('loadstring(game:HttpGet("YOUR_SCRIPT_URL_HERE"))()')
-    elseif queue_on_teleport then
-        queue_on_teleport('loadstring(game:HttpGet("YOUR_SCRIPT_URL_HERE"))()')
+    if queue_on_teleport then
+        queue_on_teleport('loadstring(game:HttpGet("' .. SCRIPT_URL .. '"))()')
     end
     
     wait(0.5)
@@ -69,7 +70,6 @@ local function serverHopSmart()
         return
     end
     
-    -- Buscar servidores con TARGET_PLAYERS jugadores
     local perfectServers = {}
     for _, server in pairs(servers) do
         if server.playing == TARGET_PLAYERS then
@@ -83,18 +83,14 @@ local function serverHopSmart()
         targetServer = perfectServers[math.random(1, #perfectServers)]
         print("[Server Hop] ¡Perfecto! Servidor con " .. targetServer.playing .. " jugadores encontrado")
     else
-        -- Si no hay servidores perfectos, buscar el que tenga menos jugadores
         print("[Server Hop] No hay servidores con " .. TARGET_PLAYERS .. " jugadores")
         table.sort(servers, function(a, b) return a.playing < b.playing end)
         targetServer = servers[1]
         print("[Server Hop] Mejor opción disponible: servidor con " .. targetServer.playing .. " jugadores")
     end
     
-    -- Re-ejecutar el script en el nuevo servidor
-    if syn and syn.queue_on_teleport then
-        syn.queue_on_teleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/elrickymorty/xddddd/refs/heads/main/xd"))()')
-    elseif queue_on_teleport then
-        queue_on_teleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/elrickymorty/xddddd/refs/heads/main/xd"))()')
+    if queue_on_teleport then
+        queue_on_teleport('loadstring(game:HttpGet("' .. SCRIPT_URL .. '"))()')
     end
     
     wait(0.5)
@@ -131,8 +127,20 @@ print("[Server Hop] Objetivo: Buscar servidores con " .. TARGET_PLAYERS .. " jug
 print("[Server Hop] Verificación cada: " .. CHECK_INTERVAL .. " segundos")
 print("==========================================")
 
--- Verificación inicial
 wait(5)
+
+-- Ejecutar script de MM2
+print("[Server Hop] Cargando MM2 AutoFarmer...")
+local success = pcall(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Vertex-GG/MM2/refs/heads/main/AutoFarmer%25Murdery.lua"))()
+end)
+
+if success then
+    print("[Server Hop] MM2 AutoFarmer cargado ✓")
+else
+    print("[Server Hop] Error al cargar MM2 AutoFarmer")
+end
+
 checkPlayers()
 
 -- Loop de monitoreo
