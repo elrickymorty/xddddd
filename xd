@@ -13,7 +13,7 @@ local LocalPlayer = Players.LocalPlayer
 local PlaceId = game.PlaceId
 
 -- URL del script en GitHub (CAMBIA ESTO POR TU URL)
-local SCRIPT_URL = "https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/ServerHop.lua"
+local SCRIPT_URL = "https://raw.githubusercontent.com/elrickymorty/xddddd/refs/heads/main/xd"
 
 -- Prevenir ejecución múltiple
 if getgenv().ServerHopRunning then
