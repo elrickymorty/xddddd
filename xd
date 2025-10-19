@@ -1,0 +1,154 @@
+-- Auto Server Hop para Xeno con Re-Execute Infinito MEJORADO
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+-- Configuración
+local MAX_PLAYERS = 4
+local TARGET_PLAYERS = 2
+local CHECK_INTERVAL = 15
+
+local LocalPlayer = Players.LocalPlayer
+local PlaceId = game.PlaceId
+
+-- Prevenir ejecución múltiple
+if getgenv().ServerHopRunning then
+    print("[Server Hop] Ya está ejecutándose, deteniendo instancia anterior...")
+    getgenv().ServerHopRunning = false
+    wait(1)
+end
+
+getgenv().ServerHopRunning = true
+
+-- Función para hacer server hop simple
+local function serverHop()
+    print("[Server Hop] Cambiando de servidor...")
+    
+    -- Re-ejecutar el script en el nuevo servidor
+    if syn and syn.queue_on_teleport then
+        syn.queue_on_teleport('loadstring(game:HttpGet("YOUR_SCRIPT_URL_HERE"))()')
+    elseif queue_on_teleport then
+        queue_on_teleport('loadstring(game:HttpGet("YOUR_SCRIPT_URL_HERE"))()')
+    end
+    
+    wait(0.5)
+    TeleportService:Teleport(PlaceId, LocalPlayer)
+end
+
+-- Función para hacer server hop inteligente
+local function serverHopSmart()
+    print("[Server Hop] Buscando servidor vacío...")
+    
+    local success, result = pcall(function()
+        local url = "https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+        local response = game:HttpGet(url)
+        return HttpService:JSONDecode(response)
+    end)
+    
+    if not success or not result then
+        print("[Server Hop] Método avanzado falló, usando método simple...")
+        serverHop()
+        return
+    end
+    
+    local servers = {}
+    if result.data then
+        for _, server in pairs(result.data) do
+            if server.playing and server.id ~= game.JobId then
+                table.insert(servers, {
+                    id = server.id,
+                    playing = server.playing
+                })
+            end
+        end
+    end
+    
+    if #servers == 0 then
+        print("[Server Hop] No se encontraron servidores, usando método aleatorio...")
+        serverHop()
+        return
+    end
+    
+    -- Buscar servidores con TARGET_PLAYERS jugadores
+    local perfectServers = {}
+    for _, server in pairs(servers) do
+        if server.playing == TARGET_PLAYERS then
+            table.insert(perfectServers, server)
+        end
+    end
+    
+    local targetServer = nil
+    
+    if #perfectServers > 0 then
+        targetServer = perfectServers[math.random(1, #perfectServers)]
+        print("[Server Hop] ¡Perfecto! Servidor con " .. targetServer.playing .. " jugadores encontrado")
+    else
+        -- Si no hay servidores perfectos, buscar el que tenga menos jugadores
+        print("[Server Hop] No hay servidores con " .. TARGET_PLAYERS .. " jugadores")
+        table.sort(servers, function(a, b) return a.playing < b.playing end)
+        targetServer = servers[1]
+        print("[Server Hop] Mejor opción disponible: servidor con " .. targetServer.playing .. " jugadores")
+    end
+    
+    -- Re-ejecutar el script en el nuevo servidor
+    if syn and syn.queue_on_teleport then
+        syn.queue_on_teleport('loadstring(game:HttpGet("YOUR_SCRIPT_URL_HERE"))()')
+    elseif queue_on_teleport then
+        queue_on_teleport('loadstring(game:HttpGet("YOUR_SCRIPT_URL_HERE"))()')
+    end
+    
+    wait(0.5)
+    
+    pcall(function()
+        TeleportService:TeleportToPlaceInstance(PlaceId, targetServer.id, LocalPlayer)
+    end)
+end
+
+-- Función para verificar jugadores
+local function checkPlayers()
+    if not getgenv().ServerHopRunning then return end
+    
+    local count = #Players:GetPlayers()
+    print("[Server Hop] Jugadores actuales: " .. count .. "/" .. MAX_PLAYERS)
+    
+    if count > MAX_PLAYERS or count == 1 then
+        if count == 1 then
+            print("[Server Hop] ¡Estás solo! Buscando servidor con más gente...")
+        else
+            print("[Server Hop] ¡Demasiados jugadores! Iniciando server hop...")
+        end
+        wait(2)
+        serverHopSmart()
+    end
+end
+
+-- Inicio del script
+print("==========================================")
+print("[Server Hop] Script iniciado correctamente")
+print("[Server Hop] Límite máximo: " .. MAX_PLAYERS .. " jugadores")
+print("[Server Hop] Si estás solo (1 jugador) también cambiará")
+print("[Server Hop] Objetivo: Buscar servidores con " .. TARGET_PLAYERS .. " jugadores")
+print("[Server Hop] Verificación cada: " .. CHECK_INTERVAL .. " segundos")
+print("==========================================")
+
+-- Verificación inicial
+wait(5)
+checkPlayers()
+
+-- Loop de monitoreo
+task.spawn(function()
+    while getgenv().ServerHopRunning do
+        wait(CHECK_INTERVAL)
+        pcall(checkPlayers)
+    end
+end)
+
+-- Monitoreo de nuevos jugadores
+Players.PlayerAdded:Connect(function(player)
+    if not getgenv().ServerHopRunning then return end
+    wait(3)
+    print("[Server Hop] Nuevo jugador: " .. player.Name)
+    pcall(checkPlayers)
+end)
+
+print("[Server Hop] Monitoreo activo ✓")
