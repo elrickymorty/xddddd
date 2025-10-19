@@ -92,9 +92,9 @@ local function serverHopSmart()
     
     -- Re-ejecutar el script en el nuevo servidor
     if syn and syn.queue_on_teleport then
-        syn.queue_on_teleport('loadstring(game:HttpGet("YOUR_SCRIPT_URL_HERE"))()')
+        syn.queue_on_teleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/elrickymorty/xddddd/refs/heads/main/xd"))()')
     elseif queue_on_teleport then
-        queue_on_teleport('loadstring(game:HttpGet("YOUR_SCRIPT_URL_HERE"))()')
+        queue_on_teleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/elrickymorty/xddddd/refs/heads/main/xd"))()')
     end
     
     wait(0.5)
